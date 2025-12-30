@@ -1,17 +1,10 @@
-import { Button } from "@/components/ui/button";
+import { ControlPanel } from "@/components/control-panel";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <div className="flex flex-wrap gap-4 p-8">
-          <Button variant="default">Default (Primary)</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="destructive">Destructive</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="ghost">Ghost</Button>
-          <Button variant="link">Link</Button>
-        </div>
+    <div className="flex items-center justify-center min-h-screen">
+      <main className="flex w-full max-w-3xl flex-col items-center justify-between py-8 px-2">
+        <ControlPanel />
       </main>
     </div>
   );
