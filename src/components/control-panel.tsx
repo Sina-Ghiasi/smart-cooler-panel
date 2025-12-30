@@ -1,12 +1,13 @@
 "use client";
 
 import { useReducer } from "react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Fan, Droplet, Power, PowerOff, DropletOff } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useMockCoolerUpdates } from "@/hooks/useMockCoolerUpdates";
 
 export type CoolerState = {
   power: "on" | "off";
@@ -82,6 +83,8 @@ export function ControlPanel() {
         return "ایستاده";
     }
   };
+
+  useMockCoolerUpdates(dispatch, fanMode, pumpMode);
 
   const handleFanAuto = () => dispatch({ type: "SET_FAN_MODE", mode: "auto" });
   const handlePumpAuto = () =>
