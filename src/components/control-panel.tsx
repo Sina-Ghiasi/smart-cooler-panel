@@ -67,8 +67,24 @@ function coolerReducer(state: CoolerState, action: CoolerAction): CoolerState {
 }
 
 export function ControlPanel() {
-  const [state, dispatch] = useReducer(coolerReducer, initialState);
-  const { power, fanSpeed, waterPump, fanMode, pumpMode } = state;
+  const [coolerState, coolerDispatch] = useReducer(coolerReducer, initialState);
+  const { fanMode, pumpMode } = coolerState;
+
+  useMockCoolerUpdates(coolerDispatch, fanMode, pumpMode);
+
+  return (
+    <>
+      <StatusDisplay coolerState={coolerState} />
+      <Controls coolerState={coolerState} coolerDispatch={coolerDispatch} />
+    </>
+  );
+}
+
+interface StatusDisplayProps {
+  coolerState: CoolerState;
+}
+function StatusDisplay({ coolerState }: StatusDisplayProps) {
+  const { power, waterPump, fanSpeed, fanMode, pumpMode } = coolerState;
 
   const PowerIcon = power === "on" ? Power : PowerOff;
   const PumpIcon = waterPump === "on" ? Droplet : DropletOff;
@@ -84,17 +100,10 @@ export function ControlPanel() {
     }
   };
 
-  useMockCoolerUpdates(dispatch, fanMode, pumpMode);
-
-  const handleFanAuto = () => dispatch({ type: "SET_FAN_MODE", mode: "auto" });
-  const handlePumpAuto = () =>
-    dispatch({ type: "SET_PUMP_MODE", mode: "auto" });
-
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardContent className="p-6">
-        {/* Status Display */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+    <Card className="w-full max-w-md py-4 mb-5">
+      <CardContent className="px-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col items-center gap-3">
             <PowerIcon
               className={cn(
@@ -102,7 +111,7 @@ export function ControlPanel() {
                 power === "on" ? "text-green-600" : "text-red-600"
               )}
             />
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="text-[10px] xs:text-xs">
               وضعیت: {power === "on" ? "روشن" : "خاموش"}
             </Badge>
           </div>
@@ -116,12 +125,14 @@ export function ControlPanel() {
                 "text-gray-400": fanSpeed === "off",
               })}
             />
-            <Badge variant="secondary">سرعت فن: {getFanSpeedLabel()}</Badge>
+            <Badge variant="secondary" className="text-[10px] xs:text-xs">
+              سرعت فن: {getFanSpeedLabel()}
+            </Badge>
             <Badge
               variant={fanMode === "auto" ? "default" : "secondary"}
-              className="text-xs"
+              className="text-[10px] xs:text-xs"
             >
-              {fanMode === "auto" ? "Auto" : "دستی"}
+              {fanMode === "auto" ? "خودکار" : "دستی"}
             </Badge>
           </div>
 
@@ -132,45 +143,79 @@ export function ControlPanel() {
                 waterPump === "on" ? "text-blue-600" : "text-gray-400"
               )}
             />
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="text-[10px] xs:text-xs">
               پمپ آب: {waterPump === "on" ? "روشن" : "خاموش"}
             </Badge>
             <Badge
               variant={pumpMode === "auto" ? "default" : "secondary"}
-              className="text-xs"
+              className="text-[10px] xs:text-xs"
             >
-              {pumpMode === "auto" ? "َAuto" : "دستی"}
+              {pumpMode === "auto" ? "خودکار" : "دستی"}
             </Badge>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-        <Separator className="my-6" />
+interface ControlsProps {
+  coolerState: CoolerState;
+  coolerDispatch: React.Dispatch<CoolerAction>;
+}
 
+function Controls({ coolerState, coolerDispatch }: ControlsProps) {
+  const { waterPump, fanSpeed, fanMode, pumpMode } = coolerState;
+
+  const handleFanAuto = () =>
+    coolerDispatch({ type: "SET_FAN_MODE", mode: "auto" });
+  const handlePumpAuto = () =>
+    coolerDispatch({ type: "SET_PUMP_MODE", mode: "auto" });
+
+  return (
+    <Card className="w-full max-w-md py-4">
+      <CardContent className="px-4">
         {/* Fan Controls */}
         <div className="space-y-3">
-          <label className="text-sm font-medium">کنترل فن</label>
-          <div className="flex justify-center gap-3 flex-wrap">
+          <label className="text-sm font-medium block mb-3">کنترل فن</label>
+          <div className="flex justify-between gap-3 flex-wrap">
             <Button
               variant={fanMode === "auto" ? "default" : "outline"}
               onClick={handleFanAuto}
+              className="text-[10px] xs:text-xs"
             >
-              Auto
+              خودکار
             </Button>
             <Button
-              variant="outline"
-              onClick={() => dispatch({ type: "FAN_SPEED_HIGH" })}
+              variant={
+                fanMode === "manual" && fanSpeed === "high"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => coolerDispatch({ type: "FAN_SPEED_HIGH" })}
+              className="text-[10px] xs:text-xs"
             >
               تند
             </Button>
             <Button
-              variant="outline"
-              onClick={() => dispatch({ type: "FAN_SPEED_LOW" })}
+              variant={
+                fanMode === "manual" && fanSpeed === "low"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => coolerDispatch({ type: "FAN_SPEED_LOW" })}
+              className="text-[10px] xs:text-xs"
             >
               کند
             </Button>
             <Button
-              variant="outline"
-              onClick={() => dispatch({ type: "POWER_OFF" })}
+              variant={
+                fanMode === "manual" && fanSpeed === "off"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => coolerDispatch({ type: "POWER_OFF" })}
+              className="text-[10px] xs:text-xs"
             >
               خاموش
             </Button>
@@ -181,23 +226,34 @@ export function ControlPanel() {
 
         {/* Pump Controls */}
         <div className="space-y-3">
-          <label className="text-sm font-medium">کنترل پمپ آب</label>
-          <div className="flex justify-center gap-6">
+          <label className="text-sm font-medium block mb-3">کنترل پمپ آب</label>
+          <div className="flex justify-between gap-6">
             <Button
               variant={pumpMode === "auto" ? "default" : "outline"}
               onClick={handlePumpAuto}
+              className="text-[10px] xs:text-xs"
             >
-              Auto
+              خودکار
             </Button>
             <Button
-              variant="outline"
-              onClick={() => dispatch({ type: "WATER_PUMP_ON" })}
+              variant={
+                pumpMode === "manual" && waterPump === "on"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => coolerDispatch({ type: "WATER_PUMP_ON" })}
+              className="text-[10px] xs:text-xs"
             >
               روشن
             </Button>
             <Button
-              variant="outline"
-              onClick={() => dispatch({ type: "WATER_PUMP_OFF" })}
+              variant={
+                pumpMode === "manual" && waterPump === "off"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() => coolerDispatch({ type: "WATER_PUMP_OFF" })}
+              className="text-[10px] xs:text-xs"
             >
               خاموش
             </Button>
